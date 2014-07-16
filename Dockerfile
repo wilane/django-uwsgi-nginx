@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ubuntu:precise
+from debian:latest
 
-maintainer Dockerfiles
+MAINTAINER Ousmane Wilane <wilane@gmail.com>
 
-run echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
 run apt-get update
 run apt-get install -y build-essential git
 run apt-get install -y python python-dev python-setuptools
 run apt-get install -y nginx supervisor
+run apt-get install -y libfreetype6-dev libwebp-dev  zlib-bin zlib1g-dev libjpeg8-dev libffi-dev
 run easy_install pip
 
 # install uwsgi now because it takes a little while
@@ -29,7 +29,6 @@ run pip install uwsgi
 # install nginx
 run apt-get install -y python-software-properties
 run apt-get update
-RUN add-apt-repository -y ppa:nginx/stable
 run apt-get install -y sqlite3
 
 # install our code
@@ -41,12 +40,15 @@ run rm /etc/nginx/sites-enabled/default
 run ln -s /home/docker/code/nginx-app.conf /etc/nginx/sites-enabled/
 run ln -s /home/docker/code/supervisor-app.conf /etc/supervisor/conf.d/
 
+# install django, normally you would remove this step because your project would already
+# be installed in the code/app/ directory
+# run django-admin.py startproject website /home/docker/code/app/
+
 # run pip install
 run pip install -r /home/docker/code/app/requirements.txt
 
-# install django, normally you would remove this step because your project would already
-# be installed in the code/app/ directory
-run django-admin.py startproject website /home/docker/code/app/ 
+# Instead of the below let's grab a template. The comment above still hold
+run django-admin.py startproject --template https://github.com/xenith/django-base-template/zipball/master --extension py,md,rst myproject /home/docker/code/app/src/
 
 expose 80
 cmd ["supervisord", "-n"]
