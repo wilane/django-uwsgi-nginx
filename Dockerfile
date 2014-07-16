@@ -50,5 +50,10 @@ run pip install -r /home/docker/code/app/requirements.txt
 # Instead of the below let's grab a template. The comment above still hold
 run django-admin.py startproject --template https://github.com/xenith/django-base-template/zipball/master --extension py,md,rst myproject /home/docker/code/app/src/
 
+run cp /home/docker/code/app/src/myproject/settings/local-dist.py /home/docker/code/app/src/myproject/settings/local.py
+
+# Without this uwsgi will throw a funny error unrelated SO:20963856
+run echo "DEBUG_TOOLBAR_PATCH_SETTINGS = False" >> /home/docker/code/app/src/myproject/settings/local.py
+
 expose 80
 cmd ["supervisord", "-n"]
