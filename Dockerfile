@@ -20,7 +20,7 @@ run apt-get update
 run apt-get install -y build-essential git
 run apt-get install -y python python-dev python-setuptools
 run apt-get install -y nginx supervisor
-run apt-get install -y libfreetype6-dev libwebp-dev  zlib-bin zlib1g-dev libjpeg8-dev libffi-dev
+run apt-get install -y libfreetype6-dev libwebp-dev   zlib1g-dev  libjpeg-dev libffi-dev
 run easy_install pip
 
 # install uwsgi now because it takes a little while
