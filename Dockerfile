@@ -12,48 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from debian:latest
+# FIXME: Build from django instead or one of the bases above: buildpack-deps/
+# OR Use the official Django from this repo
+# docker run -it --rm --user "$(id -u):$(id -g)" -v "$PWD":/usr/src/ \
+#                              -w /usr/src/ \
+#                              django-admin.py startproject --template https://github.com/xenith/django-base-template/zipball/master \
+#                              --extension py,md,rst myproject /usr/src/app/src/
+
+from django
 
 MAINTAINER Ousmane Wilane <wilane@gmail.com>
 
-run apt-get update
-run apt-get install -y build-essential git
-run apt-get install -y python python-dev python-setuptools
-run apt-get install -y nginx supervisor
-run apt-get install -y libfreetype6-dev libwebp-dev   zlib1g-dev  libjpeg-dev libffi-dev
-run easy_install pip
+# run apt-get update && apt-get install -y build-essential git  python python-dev \
+#                        python-setuptools  nginx supervisor libfreetype6-dev \
+#                        libwebp-dev   zlib1g-dev  libjpeg-dev libffi-dev \
+#                        python-software-properties sqlite3 python-pip
 
-# install uwsgi now because it takes a little while
-run pip install uwsgi
-
-# install nginx
-run apt-get install -y python-software-properties
-run apt-get update
-run apt-get install -y sqlite3
+run apt-get update && apt-get install -y nginx supervisor libfreetype6-dev git libwebp-dev zlib1g-dev  libjpeg-dev libffi-dev
 
 # install our code
-add . /home/docker/code/
+add . /usr/src/app
 
 # setup all the configfiles
-run echo "daemon off;" >> /etc/nginx/nginx.conf
-run rm /etc/nginx/sites-enabled/default
-run ln -s /home/docker/code/nginx-app.conf /etc/nginx/sites-enabled/
-run ln -s /home/docker/code/supervisor-app.conf /etc/supervisor/conf.d/
-
-# install django, normally you would remove this step because your project would already
-# be installed in the code/app/ directory
-# run django-admin.py startproject website /home/docker/code/app/
-
-# run pip install
-run pip install -r /home/docker/code/app/requirements.txt
+run pip install uwsgi
 
 # Instead of the below let's grab a template. The comment above still hold
-run django-admin.py startproject --template https://github.com/xenith/django-base-template/zipball/master --extension py,md,rst myproject /home/docker/code/app/src/
+run pip install --no-cache-dir -r /usr/src/app/requirements.txt && pip install setuptools && \
+    django-admin.py startproject --template https://github.com/xenith/django-base-template/zipball/master --extension py,md,rst myproject /usr/src/app/src/ \
+    && cp /usr/src/app/src/myproject/settings/local-dist.py /usr/src/app/src/myproject/settings/local.py && \
+    echo "DEBUG_TOOLBAR_PATCH_SETTINGS = False" >> /usr/src/app/src/myproject/settings/local.py
 
-run cp /home/docker/code/app/src/myproject/settings/local-dist.py /home/docker/code/app/src/myproject/settings/local.py
-
-# Without this uwsgi will throw a funny error unrelated SO:20963856
-run echo "DEBUG_TOOLBAR_PATCH_SETTINGS = False" >> /home/docker/code/app/src/myproject/settings/local.py
-
-expose 80
-cmd ["supervisord", "-n"]
+WORKDIR /usr/src/app/src
+EXPOSE 8000
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
