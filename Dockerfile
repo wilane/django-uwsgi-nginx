@@ -44,4 +44,5 @@ run pip install --no-cache-dir -r /usr/src/app/requirements.txt && pip install s
 
 WORKDIR /usr/src/app/src
 EXPOSE 8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["uwsgi", "--ini",  "/usr/src/app/uwsgi.ini", "--chdir", "/usr/src/app/src"]
